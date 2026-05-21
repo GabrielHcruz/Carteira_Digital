@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Carteira Digital - Gerencie seu dinheiro e criptomoedas">
+  <title>Carteira Digital - Gerenciador de Patrimônio</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../cssstyle.css/css/style.css">
+ </head>
+ <body class="h-full">
+  <div id="app" class="min-h-screen h-full w-full overflow-auto" style="background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0d0d2b 100%);">
+
+   <dialog id="cryptoDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity" style="display:none;">
+     <article class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-3xl border border-white/10 max-w-md w-full shadow-2xl transform transition-transform overflow-auto" style="max-height:80vh;">
+     <header class="p-6 flex items-center justify-between mb-4 border-b border-white/10">
+      <div class="flex items-center gap-3">
+       <div id="modalCryptoIcon" class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white" aria-label="Ícone da criptomoeda"></div>
+       <div>
+        <h2 id="modalCryptoName" class="text-white font-700 text-lg"></h2>
+        <p id="modalCryptoSymbol" class="text-gray-400 text-sm"></p>
+       </div>
+      </div>
+      <button id="closeDetailModal" class="text-gray-500 hover:text-white transition-colors cursor-pointer" aria-label="Fechar modal">
+        <i data-lucide="x" style="width:24px;height:24px;" aria-hidden="true"></i>
+      </button>
+     </header>
+     <main class="p-6">
+      <div class="space-y-4 mb-6">
+       <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-gray-400 text-xs font-500 uppercase tracking-wider mb-1">Quantidade Total</p>
+        <output id="modalTotalAmount" class="mono text-white text-xl font-700" aria-label="Quantidade total de moedas"></output>
+       </div>
+       <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-gray-400 text-xs font-500 uppercase tracking-wider mb-1">Preço de Compra</p>
+        <output id="modalBuyPrice" class="mono text-amber-400 text-lg font-600" aria-label="Preço unitário de compra"></output>
+       </div>
+       <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-gray-400 text-xs font-500 uppercase tracking-wider mb-1">Preço Atual</p>
+        <output id="modalCurrentPrice" class="mono text-cyan-400 text-lg font-600" aria-label="Preço atual da criptomoeda"></output>
+       </div>
+       <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-gray-400 text-xs font-500 uppercase tracking-wider mb-1">Valor Investido</p>
+        <output id="modalInvestedValue" class="mono text-blue-400 text-lg font-600" aria-label="Valor total investido"></output>
+       </div>
+       <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+        <p class="text-gray-400 text-xs font-500 uppercase tracking-wider mb-1">Valor Atual</p>
+        <output id="modalCurrentValue" class="mono text-purple-400 text-lg font-600" aria-label="Valor atual em carteira"></output>
+       </div>
+       <div id="modalGainContainer" class="rounded-2xl p-4 border">
+        <p class="text-gray-400 text-xs font-500 uppercase tracking-wider mb-2">Lucro/Prejuízo</p>
+        <div class="flex items-end justify-between">
+         <div>
+          <output id="modalGainValue" class="mono text-2xl font-700 mb-1" aria-label="Valor de ganho ou perda"></output>
+          <output id="modalGainPercent" class="mono text-sm font-500" aria-label="Percentual de ganho ou perda"></output>
+         </div>
+         <i id="modalGainIcon" data-lucide="trending-up" style="width:32px;height:32px;" aria-hidden="true"></i>
+        </div>
+       </div>
+      </div>
+
+      <div class="mt-6">
+       <h3 class="text-white font-600 text-sm mb-3 flex items-center gap-2">
+        <i data-lucide="history" style="width:16px;height:16px;"></i>
+        Histórico de Transações
+       </h3>
+       <div id="transactionHistory" class="space-y-2 max-h-40 overflow-y-auto">
+
+       </div>
+      </div>
+     </main>
+     <footer class="p-6 border-t border-white/10">
+      <button id="removeDetailCrypto" class="w-full py-3 rounded-xl font-600 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all">
+       Remover desta Carteira
+      </button>
+     </footer>
+     </article>
+    </dialog>
+
+   <dialog id="cryptoSelectorModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity" style="display:none;">
+    <article class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-3xl border border-white/10 max-w-3xl w-full shadow-2xl flex flex-col" style="max-height:85vh;">
+     <header class="p-6 sticky top-0 bg-gradient-to-b from-gray-900 to-gray-900/80 border-b border-white/10 flex items-center justify-between">
+      <div>
+       <h2 class="text-white font-700 text-xl">Todas as Criptomoedas (300+)</h2>
+       <p class="text-gray-400 text-xs mt-1">Selecione uma para adicionar à carteira</p>
+      </div>
+      <button id="closeSelectorModal" class="text-gray-500 hover:text-white transition-colors flex-shrink-0" aria-label="Fechar modal de seleção">
+        <i data-lucide="x" style="width:24px;height:24px;" aria-hidden="true"></i>
+      </button>
+     </header>
+     <main class="p-6 overflow-auto flex-1">
+      <input type="search" id="cryptoSearchInput" placeholder="Buscar criptomoeda..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-amber-500/50 mb-4" aria-label="Buscar criptomoeda">
+      <div id="cryptoSelectorGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+     </main>
+    </article>
+   </dialog>
+
+   <dialog id="cryptoAddModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity" style="display:none;">
+    <article class="bg-gradient-to-br from-gray-900 to-gray-950 rounded-3xl border border-white/10 max-w-md w-full shadow-2xl">
+     <header class="p-6 flex items-center justify-between border-b border-white/10">
+      <div class="flex items-center gap-3">
+       <div id="addCryptoIcon" class="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white"></div>
+       <div>
+        <h2 id="addCryptoName" class="text-white font-700 text-lg"></h2>
+        <p id="addCryptoSymbol" class="text-gray-400 text-sm"></p>
+       </div>
+      </div>
+      <button id="closeAddModalHeader" class="text-gray-500 hover:text-white transition-colors" aria-label="Fechar modal">
+        <i data-lucide="x" style="width:24px;height:24px;" aria-hidden="true"></i>
+      </button>
+     </header>
+     <main class="p-6 space-y-4">
+      <div>
+       <label for="cryptoAmountInput" class="text-gray-400 text-sm font-500 block mb-2">Quantidade</label>
+       <input type="number" id="cryptoAmountInput" placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50" min="0" step="0.00000001" aria-label="Quantidade de criptomoeda">
+      </div>
+      <div>
+       <label for="cryptoPriceInput" class="text-gray-400 text-sm font-500 block mb-2">Preço Unitário (R$)</label>
+       <input type="number" id="cryptoPriceInput" placeholder="0.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-amber-500/50" min="0" step="0.01" aria-label="Preço unitário da criptomoeda">
+      </div>
+     </main>
+     <footer class="p-6 flex gap-3 border-t border-white/10">
+      <button id="closeAddModal" class="flex-1 py-2.5 rounded-xl font-600 bg-white/5 hover:bg-white/10 text-white border border-white/10 transition-all">Cancelar</button>
+      <button id="submitCryptoFormBtn" class="flex-1 py-2.5 rounded-xl font-600 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white transition-all">Adicionar</button>
+     </footer>
+    </article>
+   </dialog>
+
+   <header class="text-center pt-8 pb-4 px-4 border-b border-white/10">
+    <h1 id="appTitle" class="text-3xl md:text-4xl font-800 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">Minha Carteira</h1>
+    <p class="text-gray-500 text-sm mt-1">Gerencie seu dinheiro e criptomoedas</p>
+   </header>
+
+   <main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+
+    <section class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 mb-8" aria-label="Resumo financeiro">
+     <article class="card-3d rounded-2xl p-4 bg-gradient-to-br from-emerald-900/60 to-emerald-800/30 border border-emerald-500/20">
+      <h3 class="text-emerald-400 text-xs font-600 uppercase tracking-wider">Receitas</h3>
+      <output id="incomeDisplay" class="mono text-emerald-300 text-lg font-700 mt-1" aria-label="Total de receitas">R$ 0,00</output>
+     </article>
+     <article class="card-3d rounded-2xl p-4 bg-gradient-to-br from-red-900/60 to-red-800/30 border border-red-500/20">
+      <h3 class="text-red-400 text-xs font-600 uppercase tracking-wider">Despesas</h3>
+      <output id="expenseDisplay" class="mono text-red-300 text-lg font-700 mt-1" aria-label="Total de despesas">R$ 0,00</output>
+     </article>
+     <article class="card-3d rounded-2xl p-4 bg-gradient-to-br from-blue-900/60 to-blue-800/30 border border-blue-500/20">
+      <h3 class="text-blue-400 text-xs font-600 uppercase tracking-wider">Saldo</h3>
+      <output id="balanceDisplay" class="mono text-blue-300 text-lg font-700 mt-1" aria-label="Saldo financeiro">R$ 0,00</output>
+     </article>
+     <article class="card-3d rounded-2xl p-4 bg-gradient-to-br from-purple-900/60 to-purple-800/30 border border-purple-500/20">
+      <h3 class="text-purple-400 text-xs font-600 uppercase tracking-wider">Carteira</h3>
+      <output id="portfolioDisplay" class="mono text-purple-300 text-lg font-700 mt-1" aria-label="Valor total da carteira de criptomoedas">R$ 0,00</output>
+     </article>
+     <article class="card-3d rounded-2xl p-4 bg-gradient-to-br from-orange-900/60 to-orange-800/30 border border-orange-500/20">
+      <h3 class="text-orange-400 text-xs font-600 uppercase tracking-wider">Investido</h3>
+      <output id="investedDisplay" class="mono text-orange-300 text-lg font-700 mt-1" aria-label="Total investido em criptomoedas">R$ 0,00</output>
+     </article>
+     <article class="card-3d rounded-2xl p-4 bg-gradient-to-br from-cyan-900/60 to-cyan-800/30 border border-cyan-500/20">
+      <h3 class="text-cyan-400 text-xs font-600 uppercase tracking-wider">Resultado</h3>
+      <output id="gainDisplay" class="mono text-cyan-300 text-lg font-700 mt-1" aria-label="Lucro ou prejuízo total">R$ 0,00</output>
+     </article>
+    </section>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+     <section class="rounded-2xl p-6 bg-gradient-to-br from-gray-900/50 to-gray-950/50 border border-white/10" aria-label="Gráfico de distribuição de ativos">
+      <h2 class="text-white font-700 text-lg mb-4">Distribuição de Ativos</h2>
+      <svg id="pie3DChart" style="width: 100%; height: 300px; display: none;"></svg>
+      <p id="noPieData" class="text-center text-gray-400 py-12">Nenhuma criptomoeda adicionada</p>
+     </section>
+
+     <section class="rounded-2xl p-6 bg-gradient-to-br from-gray-900/50 to-gray-950/50 border border-white/10" aria-label="Gráfico de patrimônio por moeda">
+      <h2 class="text-white font-700 text-lg mb-4">Patrimônio por Moeda</h2>
+      <svg id="bar3DChart" style="width: 100%; height: 300px; display: none;"></svg>
+      <p id="noBarData" class="text-center text-gray-400 py-12">Nenhuma criptomoeda adicionada</p>
+     </section>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+     <section class="rounded-2xl p-6 bg-gradient-to-br from-gray-900/50 to-gray-950/50 border border-white/10" aria-label="Adicionar receita">
+      <h2 class="text-white font-700 text-lg mb-4">Adicionar Receita Mensal</h2>
+      <form id="monthlyIncomeForm" class="space-y-4 mb-4">
+       <div>
+        <label for="monthlyIncomeInput" class="text-gray-400 text-sm font-500 block mb-2">Valor (R$)</label>
+        <input type="number" id="monthlyIncomeInput" placeholder="100.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-emerald-500/50" min="0" step="0.01" aria-label="Valor da receita">
+       </div>
+       <button type="submit" class="w-full py-2.5 rounded-xl font-600 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 transition-all">
+        Adicionar
+       </button>
+      </form>
+      <div id="monthlyIncomeList" class="space-y-2"></div>
+     </section>
+
+     <section class="rounded-2xl p-6 bg-gradient-to-br from-gray-900/50 to-gray-950/50 border border-white/10" aria-label="Adicionar despesa">
+      <h2 class="text-white font-700 text-lg mb-4">Adicionar Despesa Mensal</h2>
+      <form id="monthlyExpenseForm" class="space-y-4 mb-4">
+       <div>
+        <label for="expenseCategorySelect" class="text-gray-400 text-sm font-500 block mb-2">Categoria</label>
+        <div class="relative">
+         <div id="expenseCategoryDropdown" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white cursor-pointer flex items-center justify-between focus:outline-none focus:border-red-500/50" tabindex="0" aria-label="Categoria de despesa">
+          <span id="selectedCategory">Selecione uma categoria</span>
+          <i data-lucide="chevron-down" class="w-4 h-4 transition-transform" id="dropdownArrow"></i>
+         </div>
+         <ul id="expenseCategoryList" class="absolute top-full left-0 right-0 bg-gray-900/95 backdrop-blur-sm border border-white/10 rounded-xl mt-1 max-h-40 overflow-y-auto z-10 hidden shadow-lg">
+          <li data-value="" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-gray-400">Selecione uma categoria</li>
+          <li data-value="agua" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">💧 Água</li>
+          <li data-value="luz" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">⚡ Energia</li>
+          <li data-value="gas" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">🔥 Gás</li>
+          <li data-value="internet" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">📡 Internet</li>
+          <li data-value="telefone" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">📱 Telefone</li>
+          <li data-value="aluguel" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">🏠 Aluguel</li>
+          <li data-value="alimentacao" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">🛒 Alimentação</li>
+          <li data-value="transporte" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">🚗 Transporte</li>
+          <li data-value="saude" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">🏥 Saúde</li>
+          <li data-value="educacao" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">📚 Educação</li>
+          <li data-value="diversao" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">💃 Diversão</li>
+          <li data-value="academia" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">🏋️‍♂️ Academia</li>
+          <li data-value="outro" class="px-4 py-2 hover:bg-white/10 cursor-pointer text-white">📋 Outro</li>
+         </ul>
+        </div>
+        <input type="hidden" id="expenseCategorySelect" value="">
+       </div>
+       <div>
+        <label for="monthlyExpenseInput" class="text-gray-400 text-sm font-500 block mb-2">Valor (R$)</label>
+        <input type="number" id="monthlyExpenseInput" placeholder="50.00" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-gray-600 focus:outline-none focus:border-red-500/50" min="0" step="0.01" aria-label="Valor da despesa">
+       </div>
+       <button type="submit" class="w-full py-2.5 rounded-xl font-600 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all">
+        Adicionar
+       </button>
+      </form>
+      <div id="monthlyExpenseList" class="space-y-2 mb-3"></div>
+      <button id="clearExpensesBtn" class="w-full py-2 rounded-xl font-500 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-sm transition-all" style="display: none;">
+       Limpar Despesas
+      </button>
+     </section>
+    </div>
+
+    <section class="rounded-2xl p-6 bg-gradient-to-br from-gray-900/50 to-gray-950/50 border border-white/10 mb-8" aria-label="Minha carteira de criptomoedas">
+     <div class="flex items-center justify-between mb-6">
+      <h2 class="text-white font-700 text-lg">Minhas Criptomoedas</h2>
+      <button id="addCryptoButton" class="flex items-center gap-2 px-4 py-2.5 rounded-xl font-600 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 transition-all">
+       <i data-lucide="plus" style="width:18px;height:18px;" aria-hidden="true"></i>
+       Adicionar
+      </button>
+     </div>
+     <div id="cryptoListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+     </div>
+    </section>
+
+    <section class="rounded-2xl p-6 bg-gradient-to-br from-gray-900/50 to-gray-950/50 border border-white/10" aria-label="Histórico de transações">
+     <h2 class="text-white font-700 text-lg mb-4">Histórico de Transações</h2>
+     <div id="transactionList" class="space-y-3 max-h-96 overflow-y-auto">
+      <p class="text-center text-gray-400 py-8">Nenhuma transação registrada</p>
+     </div>
+    </section>
+   </main>
+
+   <div id="toastContainer" class="fixed bottom-4 right-4 z-50 pointer-events-none" aria-live="polite" aria-atomic="true"></div>
+
+   <div id="tooltip" class="absolute bg-gray-900 border border-white/20 text-white text-xs px-3 py-2 rounded-lg pointer-events-none z-40 hidden" style="max-width: 200px;"></div>
+  </div>
+
+  <script src="../jsapp.js/js/app.js"></script>
+ </body>
+</html>
